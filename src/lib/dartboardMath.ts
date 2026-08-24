@@ -65,6 +65,29 @@ export function hitToThrow(hit: BoardHit): Throw {
   return { value: hit.value, multiplier: hit.multiplier, points, label };
 }
 
+/** Parses free-typed dart notation (e.g. "20", "D16", "T20", "25", "Bull", "Miss") into a Throw. */
+export function parseThrowInput(raw: string): Throw | null {
+  const s = raw.trim().toUpperCase();
+  if (s === "") return null;
+  if (s === "MISS" || s === "M" || s === "0") return { value: 0, multiplier: 1, points: 0, label: "Miss" };
+  if (s === "BULL" || s === "B" || s === "50" || s === "D25") {
+    return { value: 25, multiplier: 2, points: 50, label: "Bull" };
+  }
+  if (s === "25") return { value: 25, multiplier: 1, points: 25, label: "25" };
+
+  const match = s.match(/^([DT])?(\d{1,2})$/);
+  if (!match) return null;
+
+  const [, prefix, numStr] = match;
+  const value = parseInt(numStr, 10);
+  if (value < 1 || value > 20) return null;
+
+  const multiplier: 1 | 2 | 3 = prefix === "T" ? 3 : prefix === "D" ? 2 : 1;
+  const points = value * multiplier;
+  const label = prefix ? `${prefix}${value}` : `${value}`;
+  return { value, multiplier, points, label };
+}
+
 function polar(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = (angleDeg * Math.PI) / 180;
   return { x: cx + r * Math.sin(rad), y: cy - r * Math.cos(rad) };

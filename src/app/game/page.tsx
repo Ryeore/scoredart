@@ -8,7 +8,6 @@ import QuickEntry from "@/components/QuickEntry";
 import Scoreboard from "@/components/Scoreboard";
 import WinnerModal from "@/components/WinnerModal";
 import HistoryModal from "@/components/HistoryModal";
-import ThrowEditorModal from "@/components/ThrowEditorModal";
 
 type InputMode = "board" | "quick";
 
@@ -17,7 +16,6 @@ export default function GamePage() {
   const { gameState, throwDart, undoThrow, confirmCurrentTurn, editThrow, startGame, endGame } = useGame();
   const [mode, setMode] = useState<InputMode>("board");
   const [showHistory, setShowHistory] = useState(false);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!gameState) router.replace("/setup");
@@ -34,7 +32,7 @@ export default function GamePage() {
         gameState={gameState}
         onUndo={undoThrow}
         onConfirm={confirmCurrentTurn}
-        onEditThrow={setEditingIndex}
+        onEditThrow={editThrow}
       />
 
       {gameState.message && (
@@ -71,14 +69,6 @@ export default function GamePage() {
         <DartBoard onThrow={throwDart} disabled={!!winner || turnFull} />
       ) : (
         <QuickEntry onThrow={throwDart} disabled={!!winner || turnFull} />
-      )}
-
-      {editingIndex !== null && (
-        <ThrowEditorModal
-          dartNumber={editingIndex + 1}
-          onSelect={(t) => editThrow(editingIndex, t)}
-          onClose={() => setEditingIndex(null)}
-        />
       )}
 
       {showHistory && (
