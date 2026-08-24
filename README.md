@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ScoreDart
+
+A minimalistic web app for tracking scores in a game of darts, built with Next.js. Designed to be hosted on Vercel.
+
+## Features
+
+- **Main menu** to start a new match.
+- **Setup screen** — choose 1-4 players (with custom names), game type (301 / 501 / 701), and whether a leg must finish on a double.
+- **Two scoring inputs**:
+  - **Dart Board** — an interactive SVG board with accurate segments and rings. Tap a segment to score, or press and hold to open a magnified loupe that follows your finger/cursor for precise placement.
+  - **Quick Entry** — a grid of numbers 1-20 with Single / Double / Triple multiplier toggle, plus dedicated 25, Bull (50), and Miss buttons.
+- **Live scoreboard** with turn tracking, bust detection, undo-last-dart, and a winner screen with rematch / main menu options.
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to play.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `src/app` — routes: main menu (`/`), game setup (`/setup`), and the match screen (`/game`).
+- `src/components` — `DartBoard`, `BoardArt`, `QuickEntry`, `Scoreboard`, `WinnerModal`.
+- `src/context/GameContext.tsx` — shared game state across the setup and game screens.
+- `src/lib` — `dartboardMath.ts` (segment/ring geometry), `gameLogic.ts` (turn, bust, and win rules), `types.ts`.
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Import this repository into [Vercel](https://vercel.com/new) — it will be auto-detected as a Next.js project and requires no additional configuration.
