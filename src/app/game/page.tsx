@@ -8,6 +8,7 @@ import QuickEntry from "@/components/QuickEntry";
 import Scoreboard from "@/components/Scoreboard";
 import WinnerModal from "@/components/WinnerModal";
 import HistoryModal from "@/components/HistoryModal";
+import type { Throw } from "@/lib/types";
 
 type InputMode = "board" | "quick";
 
@@ -16,6 +17,7 @@ export default function GamePage() {
   const { gameState, throwDart, undoThrow, confirmCurrentTurn, editThrow, startGame, endGame } = useGame();
   const [mode, setMode] = useState<InputMode>("board");
   const [showHistory, setShowHistory] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!gameState) router.replace("/setup");
@@ -26,13 +28,23 @@ export default function GamePage() {
   const winner = gameState.winnerIndex !== null ? gameState.players[gameState.winnerIndex] : null;
   const turnFull = gameState.currentTurnThrows.length >= 3;
 
+  function handleThrow(t: Throw) {
+    if (editingIndex !== null) {
+      editThrow(editingIndex, t);
+      setEditingIndex(null);
+    } else {
+      throwDart(t);
+    }
+  }
+
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 p-4">
       <Scoreboard
         gameState={gameState}
         onUndo={undoThrow}
         onConfirm={confirmCurrentTurn}
-        onEditThrow={editThrow}
+        editingIndex={editingIndex}
+        onToggleEditThrow={(i) => setEditingIndex((prev) => (prev === i ? null : i))}
       />
 
       {gameState.message && (
@@ -66,9 +78,9 @@ export default function GamePage() {
       </div>
 
       {mode === "board" ? (
-        <DartBoard onThrow={throwDart} disabled={!!winner || turnFull} />
+        <DartBoard onThrow={handleThrow} disabled={!!winner || (turnFull && editingIndex === null)} />
       ) : (
-        <QuickEntry onThrow={throwDart} disabled={!!winner || turnFull} />
+        <QuickEntry onThrow={handleThrow} disabled={!!winner || (turnFull && editingIndex === null)} />
       )}
 
       {showHistory && (

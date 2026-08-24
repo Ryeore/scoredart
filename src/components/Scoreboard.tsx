@@ -1,33 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import type { GameState, Throw } from "@/lib/types";
-import { parseThrowInput } from "@/lib/dartboardMath";
+import type { GameState } from "@/lib/types";
 
 interface Props {
   gameState: GameState;
   onUndo: () => void;
   onConfirm: () => void;
-  onEditThrow: (index: number, t: Throw) => void;
+  editingIndex: number | null;
+  onToggleEditThrow: (index: number) => void;
 }
 
-export default function Scoreboard({ gameState, onUndo, onConfirm, onEditThrow }: Props) {
+export default function Scoreboard({ gameState, onUndo, onConfirm, editingIndex, onToggleEditThrow }: Props) {
   const { players, currentPlayerIndex, currentTurnThrows, winnerIndex } = gameState;
   const pendingSum = currentTurnThrows.reduce((sum, t) => sum + t.points, 0);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [draft, setDraft] = useState("");
-
-  function startEdit(index: number, current: Throw) {
-    setEditingIndex(index);
-    setDraft(current.label);
-  }
-
-  function commitEdit() {
-    if (editingIndex === null) return;
-    const parsed = parseThrowInput(draft);
-    if (parsed) onEditThrow(editingIndex, parsed);
-    setEditingIndex(null);
-  }
 
   return (
     <div className="flex flex-col gap-2">
@@ -60,30 +45,16 @@ export default function Scoreboard({ gameState, onUndo, onConfirm, onEditThrow }
               const t = currentTurnThrows[i];
               const isEditing = editingIndex === i;
 
-              if (isEditing) {
-                return (
-                  <input
-                    key={i}
-                    autoFocus
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                    onFocus={(e) => e.target.select()}
-                    onBlur={commitEdit}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") commitEdit();
-                      if (e.key === "Escape") setEditingIndex(null);
-                    }}
-                    className="h-9 w-14 rounded-md border-2 border-accent bg-neutral-800 text-center text-sm font-semibold text-neutral-100 outline-none"
-                  />
-                );
-              }
-
               return (
                 <button
                   key={i}
-                  onClick={() => t && startEdit(i, t)}
+                  onClick={() => t && onToggleEditThrow(i)}
                   disabled={!t}
-                  className="flex h-9 w-14 items-center justify-center rounded-md bg-neutral-800 text-sm font-semibold text-neutral-200 transition disabled:opacity-60 enabled:hover:ring-2 enabled:hover:ring-accent"
+                  className={`flex h-9 w-14 items-center justify-center rounded-md text-sm font-semibold transition disabled:opacity-60 ${
+                    isEditing
+                      ? "bg-accent text-white ring-2 ring-accent"
+                      : "bg-neutral-800 text-neutral-200 enabled:hover:ring-2 enabled:hover:ring-accent"
+                  }`}
                 >
                   {t?.label ?? ""}
                 </button>
