@@ -7,6 +7,7 @@ import DartBoard from "@/components/DartBoard";
 import QuickEntry from "@/components/QuickEntry";
 import Scoreboard from "@/components/Scoreboard";
 import WinnerModal from "@/components/WinnerModal";
+import HistoryModal from "@/components/HistoryModal";
 
 type InputMode = "board" | "quick";
 
@@ -14,6 +15,7 @@ export default function GamePage() {
   const router = useRouter();
   const { gameState, throwDart, undoThrow, startGame, endGame } = useGame();
   const [mode, setMode] = useState<InputMode>("board");
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     if (!gameState) router.replace("/setup");
@@ -30,6 +32,13 @@ export default function GamePage() {
       {gameState.message && (
         <p className="text-center text-sm font-semibold text-accent">{gameState.message}</p>
       )}
+
+      <button
+        onClick={() => setShowHistory(true)}
+        className="rounded-lg bg-neutral-800 py-2 text-sm font-semibold text-neutral-300 transition active:scale-95"
+      >
+        View Throw History
+      </button>
 
       <div className="grid grid-cols-2 gap-2">
         <button
@@ -54,6 +63,10 @@ export default function GamePage() {
         <DartBoard onThrow={throwDart} disabled={!!winner} />
       ) : (
         <QuickEntry onThrow={throwDart} disabled={!!winner} />
+      )}
+
+      {showHistory && (
+        <HistoryModal players={gameState.players} onClose={() => setShowHistory(false)} />
       )}
 
       {winner && (

@@ -14,11 +14,16 @@ export interface Throw {
   label: string;
 }
 
+export interface Turn {
+  throws: Throw[];
+  scoreAfter: number;
+  busted: boolean;
+}
+
 export interface PlayerState {
   name: string;
   score: number;
-  /** completed turns, each an array of up to 3 throws */
-  turns: Throw[][];
+  turns: Turn[];
 }
 
 export interface GameState {

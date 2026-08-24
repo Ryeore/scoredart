@@ -74,7 +74,8 @@ function endTurn(
 ): GameState {
   const players = [...state.players];
   const idx = state.currentPlayerIndex;
-  players[idx] = { ...players[idx], score: finalScore, turns: [...player.turns, turnThrows] };
+  const turn = { throws: turnThrows, scoreAfter: finalScore, busted: message === "Bust!" };
+  players[idx] = { ...players[idx], score: finalScore, turns: [...player.turns, turn] };
 
   const nextPlayerIndex = (idx + 1) % players.length;
 
