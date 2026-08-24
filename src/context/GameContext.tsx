@@ -2,13 +2,12 @@
 
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import type { GameSettings, GameState, Throw } from "@/lib/types";
-import { createInitialGameState, registerThrow, undoLastThrow, confirmTurn, editThrowAt } from "@/lib/gameLogic";
+import { createInitialGameState, registerThrow, confirmTurn, editThrowAt } from "@/lib/gameLogic";
 
 interface GameContextValue {
   gameState: GameState | null;
   startGame: (settings: GameSettings) => void;
   throwDart: (t: Throw) => void;
-  undoThrow: () => void;
   confirmCurrentTurn: () => void;
   editThrow: (index: number, t: Throw) => void;
   endGame: () => void;
@@ -24,7 +23,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
       gameState,
       startGame: (settings) => setGameState(createInitialGameState(settings)),
       throwDart: (t) => setGameState((prev) => (prev ? registerThrow(prev, t) : prev)),
-      undoThrow: () => setGameState((prev) => (prev ? undoLastThrow(prev) : prev)),
       confirmCurrentTurn: () => setGameState((prev) => (prev ? confirmTurn(prev) : prev)),
       editThrow: (index, t) => setGameState((prev) => (prev ? editThrowAt(prev, index, t) : prev)),
       endGame: () => setGameState(null),

@@ -4,13 +4,12 @@ import type { GameState } from "@/lib/types";
 
 interface Props {
   gameState: GameState;
-  onUndo: () => void;
   onConfirm: () => void;
   editingIndex: number | null;
   onToggleEditThrow: (index: number) => void;
 }
 
-export default function Scoreboard({ gameState, onUndo, onConfirm, editingIndex, onToggleEditThrow }: Props) {
+export default function Scoreboard({ gameState, onConfirm, editingIndex, onToggleEditThrow }: Props) {
   const { players, currentPlayerIndex, currentTurnThrows, winnerIndex } = gameState;
   const pendingSum = currentTurnThrows.reduce((sum, t) => sum + t.points, 0);
 
@@ -62,13 +61,6 @@ export default function Scoreboard({ gameState, onUndo, onConfirm, editingIndex,
             })}
           </div>
           <div className="flex gap-2">
-            <button
-              onClick={onUndo}
-              disabled={currentTurnThrows.length === 0}
-              className="rounded-md bg-neutral-800 px-3 py-2 text-xs font-semibold text-neutral-300 disabled:opacity-40"
-            >
-              Undo
-            </button>
             <button
               onClick={onConfirm}
               disabled={currentTurnThrows.length === 0}

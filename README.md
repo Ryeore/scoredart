@@ -9,7 +9,7 @@ A minimalistic web app for tracking scores in a game of darts, built with Next.j
 - **Two scoring inputs**:
   - **Dart Board** — an interactive SVG board with accurate segments and rings. Tap a segment to score, or press and hold to open a magnified loupe that follows your finger/cursor for precise placement.
   - **Quick Entry** — a grid of numbers 1-20 with Single / Double / Triple multiplier toggle, plus dedicated 25, Bull (50), and Miss buttons.
-- **Live scoreboard** with turn tracking, bust detection, undo-last-dart, and a winner screen with rematch / main menu options.
+- **Live scoreboard** with turn tracking, bust detection, and a winner screen with rematch / main menu options.
 
 ## Getting Started
 

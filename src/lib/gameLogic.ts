@@ -46,16 +46,6 @@ export function editThrowAt(state: GameState, index: number, newThrow: Throw): G
   };
 }
 
-/** Undo the last dart thrown in the current (unconfirmed) turn. */
-export function undoLastThrow(state: GameState): GameState {
-  if (state.currentTurnThrows.length === 0 || state.winnerIndex !== null) return state;
-  return {
-    ...state,
-    currentTurnThrows: state.currentTurnThrows.slice(0, -1),
-    message: null,
-  };
-}
-
 interface TurnOutcome {
   finalScore: number;
   busted: boolean;

@@ -14,7 +14,7 @@ type InputMode = "board" | "quick";
 
 export default function GamePage() {
   const router = useRouter();
-  const { gameState, throwDart, undoThrow, confirmCurrentTurn, editThrow, startGame, endGame } = useGame();
+  const { gameState, throwDart, confirmCurrentTurn, editThrow, startGame, endGame } = useGame();
   const [mode, setMode] = useState<InputMode>("board");
   const [showHistory, setShowHistory] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -41,7 +41,6 @@ export default function GamePage() {
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 p-4">
       <Scoreboard
         gameState={gameState}
-        onUndo={undoThrow}
         onConfirm={confirmCurrentTurn}
         editingIndex={editingIndex}
         onToggleEditThrow={(i) => setEditingIndex((prev) => (prev === i ? null : i))}
