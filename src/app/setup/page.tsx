@@ -13,7 +13,7 @@ export default function SetupPage() {
   const { startGame } = useGame();
 
   const [playerCount, setPlayerCount] = useState(2);
-  const [names, setNames] = useState<string[]>(["Player 1", "Player 2", "Player 3", "Player 4"]);
+  const [names, setNames] = useState<string[]>(["", "", "", ""]);
   const [gameType, setGameType] = useState<GameType>(501);
   const [doubleOut, setDoubleOut] = useState(true);
 
@@ -21,11 +21,12 @@ export default function SetupPage() {
     setNames((prev) => prev.map((n, i) => (i === index ? value : n)));
   }
 
-  function handleStart() {
-    const playerNames = names
-      .slice(0, playerCount)
-      .map((n, i) => n.trim() || `Player ${i + 1}`);
+  const activeNames = names.slice(0, playerCount);
+  const namesValid = activeNames.every((n) => n.trim().length > 0);
 
+  function handleStart() {
+    if (!namesValid) return;
+    const playerNames = activeNames.map((n) => n.trim());
     startGame({ gameType, doubleOut, playerNames });
     router.push("/game");
   }
@@ -53,14 +54,26 @@ export default function SetupPage() {
         </div>
         <div className="flex flex-col gap-2">
           {Array.from({ length: playerCount }).map((_, i) => (
-            <input
-              key={i}
-              value={names[i]}
-              onChange={(e) => updateName(i, e.target.value)}
-              placeholder={`Player ${i + 1}`}
-              maxLength={16}
-              className="rounded-lg bg-neutral-800 px-4 py-2 text-base outline-none focus:ring-2 focus:ring-accent"
-            />
+            <div key={i} className="relative">
+              <input
+                value={names[i]}
+                onChange={(e) => updateName(i, e.target.value)}
+                placeholder={`Player ${i + 1} name`}
+                required
+                maxLength={16}
+                className="w-full rounded-lg bg-neutral-800 px-4 py-2 pr-10 text-base outline-none focus:ring-2 focus:ring-accent"
+              />
+              {names[i] && (
+                <button
+                  type="button"
+                  onClick={() => updateName(i, "")}
+                  aria-label={`Clear player ${i + 1} name`}
+                  className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-neutral-400 transition hover:bg-neutral-700 hover:text-neutral-100"
+                >
+                  ×
+                </button>
+              )}
+            </div>
           ))}
         </div>
       </section>
@@ -104,7 +117,8 @@ export default function SetupPage() {
 
       <button
         onClick={handleStart}
-        className="mt-auto rounded-full bg-accent py-4 text-lg font-semibold text-white shadow-lg shadow-accent/30 transition active:scale-95"
+        disabled={!namesValid}
+        className="mt-auto rounded-full bg-accent py-4 text-lg font-semibold text-white shadow-lg shadow-accent/30 transition active:scale-95 disabled:opacity-40 disabled:shadow-none disabled:active:scale-100"
       >
         Start Match
       </button>
