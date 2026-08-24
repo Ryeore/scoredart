@@ -1,5 +1,7 @@
 import type { GameSettings, GameState, PlayerState, Throw } from "./types";
 
+const MAX_DARTS_PER_TURN = 3;
+
 export function createInitialGameState(settings: GameSettings): GameState {
   const players: PlayerState[] = settings.playerNames.map((name) => ({
     name,
@@ -21,79 +23,98 @@ export function isDoubleThrow(t: Throw): boolean {
   return t.multiplier === 2;
 }
 
-/**
- * Registers a single dart throw for the current player and returns the
- * resulting state. Pure function - does not mutate the input state.
- */
+/** Adds a dart to the current (unconfirmed) turn. Does not affect scores yet. */
 export function registerThrow(state: GameState, thrownDart: Throw): GameState {
   if (state.winnerIndex !== null) return state;
-
-  const player = state.players[state.currentPlayerIndex];
-  const scoreBeforeTurn =
-    player.score +
-    state.currentTurnThrows.reduce((sum, t) => sum + t.points, 0);
-  const remaining = player.score - thrownDart.points;
-  const turnThrows = [...state.currentTurnThrows, thrownDart];
-
-  const isLastDartOfTurn = turnThrows.length >= 3;
-  const busted =
-    remaining < 0 ||
-    remaining === 1 ||
-    (remaining === 0 && state.settings.doubleOut && !isDoubleThrow(thrownDart));
-
-  if (busted) {
-    return endTurn(state, player, turnThrows, scoreBeforeTurn, "Bust!");
-  }
-
-  const players = [...state.players];
-  players[state.currentPlayerIndex] = { ...player, score: remaining };
-
-  if (remaining === 0) {
-    return {
-      ...state,
-      players,
-      currentTurnThrows: turnThrows,
-      winnerIndex: state.currentPlayerIndex,
-      message: `${player.name} wins!`,
-    };
-  }
-
-  if (isLastDartOfTurn) {
-    return endTurn({ ...state, players }, players[state.currentPlayerIndex], turnThrows, remaining, null);
-  }
-
-  return { ...state, players, currentTurnThrows: turnThrows, message: null };
-}
-
-function endTurn(
-  state: GameState,
-  player: PlayerState,
-  turnThrows: Throw[],
-  finalScore: number,
-  message: string | null
-): GameState {
-  const players = [...state.players];
-  const idx = state.currentPlayerIndex;
-  const turn = { throws: turnThrows, scoreAfter: finalScore, busted: message === "Bust!" };
-  players[idx] = { ...players[idx], score: finalScore, turns: [...player.turns, turn] };
-
-  const nextPlayerIndex = (idx + 1) % players.length;
+  if (state.currentTurnThrows.length >= MAX_DARTS_PER_TURN) return state;
 
   return {
     ...state,
-    players,
-    currentPlayerIndex: nextPlayerIndex,
-    currentTurnThrows: [],
-    message,
+    currentTurnThrows: [...state.currentTurnThrows, thrownDart],
+    message: null,
   };
 }
 
-/** Undo the last dart thrown in the current (unfinished) turn. */
+/** Replaces a single dart within the current (unconfirmed) turn. */
+export function editThrowAt(state: GameState, index: number, newThrow: Throw): GameState {
+  if (state.winnerIndex !== null) return state;
+  if (index < 0 || index >= state.currentTurnThrows.length) return state;
+
+  return {
+    ...state,
+    currentTurnThrows: state.currentTurnThrows.map((t, i) => (i === index ? newThrow : t)),
+  };
+}
+
+/** Undo the last dart thrown in the current (unconfirmed) turn. */
 export function undoLastThrow(state: GameState): GameState {
   if (state.currentTurnThrows.length === 0 || state.winnerIndex !== null) return state;
   return {
     ...state,
     currentTurnThrows: state.currentTurnThrows.slice(0, -1),
     message: null,
+  };
+}
+
+interface TurnOutcome {
+  finalScore: number;
+  busted: boolean;
+  won: boolean;
+}
+
+/** Applies darts in order against a starting score, stopping at the first bust or checkout. */
+function evaluateTurn(startScore: number, throws: Throw[], doubleOut: boolean): TurnOutcome {
+  let score = startScore;
+
+  for (const t of throws) {
+    const remaining = score - t.points;
+    const busted =
+      remaining < 0 ||
+      remaining === 1 ||
+      (remaining === 0 && doubleOut && !isDoubleThrow(t));
+
+    if (busted) return { finalScore: startScore, busted: true, won: false };
+
+    score = remaining;
+    if (score === 0) return { finalScore: score, busted: false, won: true };
+  }
+
+  return { finalScore: score, busted: false, won: false };
+}
+
+/** Commits the current turn's darts to the active player and advances to the next player. */
+export function confirmTurn(state: GameState): GameState {
+  if (state.winnerIndex !== null || state.currentTurnThrows.length === 0) return state;
+
+  const idx = state.currentPlayerIndex;
+  const player = state.players[idx];
+  const outcome = evaluateTurn(player.score, state.currentTurnThrows, state.settings.doubleOut);
+
+  const players = [...state.players];
+  players[idx] = {
+    ...player,
+    score: outcome.finalScore,
+    turns: [
+      ...player.turns,
+      { throws: state.currentTurnThrows, scoreAfter: outcome.finalScore, busted: outcome.busted },
+    ],
+  };
+
+  if (outcome.won) {
+    return {
+      ...state,
+      players,
+      currentTurnThrows: [],
+      winnerIndex: idx,
+      message: `${player.name} wins!`,
+    };
+  }
+
+  return {
+    ...state,
+    players,
+    currentPlayerIndex: (idx + 1) % players.length,
+    currentTurnThrows: [],
+    message: outcome.busted ? "Bust!" : null,
   };
 }

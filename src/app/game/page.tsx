@@ -8,14 +8,16 @@ import QuickEntry from "@/components/QuickEntry";
 import Scoreboard from "@/components/Scoreboard";
 import WinnerModal from "@/components/WinnerModal";
 import HistoryModal from "@/components/HistoryModal";
+import ThrowEditorModal from "@/components/ThrowEditorModal";
 
 type InputMode = "board" | "quick";
 
 export default function GamePage() {
   const router = useRouter();
-  const { gameState, throwDart, undoThrow, startGame, endGame } = useGame();
+  const { gameState, throwDart, undoThrow, confirmCurrentTurn, editThrow, startGame, endGame } = useGame();
   const [mode, setMode] = useState<InputMode>("board");
   const [showHistory, setShowHistory] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!gameState) router.replace("/setup");
@@ -24,10 +26,16 @@ export default function GamePage() {
   if (!gameState) return null;
 
   const winner = gameState.winnerIndex !== null ? gameState.players[gameState.winnerIndex] : null;
+  const turnFull = gameState.currentTurnThrows.length >= 3;
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 p-4">
-      <Scoreboard gameState={gameState} onUndo={undoThrow} />
+      <Scoreboard
+        gameState={gameState}
+        onUndo={undoThrow}
+        onConfirm={confirmCurrentTurn}
+        onEditThrow={setEditingIndex}
+      />
 
       {gameState.message && (
         <p className="text-center text-sm font-semibold text-accent">{gameState.message}</p>
@@ -60,9 +68,17 @@ export default function GamePage() {
       </div>
 
       {mode === "board" ? (
-        <DartBoard onThrow={throwDart} disabled={!!winner} />
+        <DartBoard onThrow={throwDart} disabled={!!winner || turnFull} />
       ) : (
-        <QuickEntry onThrow={throwDart} disabled={!!winner} />
+        <QuickEntry onThrow={throwDart} disabled={!!winner || turnFull} />
+      )}
+
+      {editingIndex !== null && (
+        <ThrowEditorModal
+          dartNumber={editingIndex + 1}
+          onSelect={(t) => editThrow(editingIndex, t)}
+          onClose={() => setEditingIndex(null)}
+        />
       )}
 
       {showHistory && (
